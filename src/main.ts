@@ -39,7 +39,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document, {
+  SwaggerModule.setup('/api/v1/docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true, // 페이지 새로고침 후에도 인증 유지
     },
