@@ -38,6 +38,7 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
+        profileImg: dto.profileImg,
       },
     });
 

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cs
+  template:
+    metadata:
+      labels:
+        app: cs
+    spec:
+      initContainers:
+        - name: prisma-migrate
+          image: 3n1hye/cs-backend:latest
+          command: ['npx', 'prisma', 'migrate', 'deploy']
+          envFrom:
+            - secretRef:
+                name: cs-secret
+      containers:
+        - name: cs
+          image: 3n1hye/cs-backend:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: cs-secret
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5

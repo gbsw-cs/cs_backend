@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, MinLength } from 'class-validator';
 
 export class SignupDto {
   @ApiProperty({ example: 'user@example.com', description: '이메일' })
@@ -17,4 +17,13 @@ export class SignupDto {
   @IsString()
   @IsNotEmpty({ message: '이름은 필수입니다.' })
   name: string;
+
+  @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    description: '프로필 이미지 URL',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl({}, { message: '올바른 URL 형식이 아닙니다.' })
+  profileImg?: string;
 }
