@@ -25,6 +25,7 @@ export class UserService {
         id: user.id,
         email: user.email,
         name: user.name,
+        profileImg: user.profileImg,
         createdAt: user.createdAt,
       };
     } catch (e) {
