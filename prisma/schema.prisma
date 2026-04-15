@@ -7,6 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ReportPushWay {
+  NOTION
+  EMAIL
+}
+
+enum DetectionType {
+  TURTLE_NECK
+  ROUND_SHOULDER
+  SHOULDER_ASYMMETRY
+  DARK_ENV
+  GOOD_POSTURE
+}
+
+enum BadgeCategory {
+  POSTURE_TIME
+  STREAK
+  SPECIAL
+}
+
+enum DeliveryWay {
+  EMAIL
+  NOTION
+}
+
+enum ReportStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 model User {
   id         String   @id @default(uuid())
   email      String   @unique
@@ -17,7 +47,13 @@ model User {
   providerId String?  @map("provider_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  userSettings      UserSettings?
+  detectionSessions DetectionSession[]
+  detectionEvents   DetectionEvent[]
+  dailyStats        DailyStat[]
+  userBadges        UserBadge[]
+  weeklyReports     WeeklyReport[]
 
   @@unique([provider, providerId])
   @@map("users")
@@ -33,4 +69,132 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
+}
+
+model UserSettings {
+  id                    String        @id @default(uuid())
+  userId                String        @unique @map("user_id")
+  brightnessThreshold   Int           @default(50) @map("brightness_threshold")
+  darkDetectionEnabled  Boolean       @default(true) @map("dark_detection_enabled")
+  reportPushEnabled     Boolean       @default(true) @map("report_push_enabled")
+  reportPushWay         ReportPushWay @default(EMAIL) @map("report_push_way")
+  pushEnabled           Boolean       @default(true) @map("push_enabled")
+  soundEnabled          Boolean       @default(true) @map("sound_enabled")
+  avatarSkin            String?       @map("avatar_skin")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model DetectionSession {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  startedAt          DateTime  @map("started_at")
+  endedAt            DateTime? @map("ended_at")
+  totalDurationSec   Int       @default(0) @map("total_duration_sec")
+  goodPostureSec     Int       @default(0) @map("good_posture_sec")
+  turtleNeckSec      Int       @default(0) @map("turtle_neck_sec")
+  shoulderIssueSec   Int       @default(0) @map("shoulder_issue_sec")
+  darkEnvSec         Int       @default(0) @map("dark_env_sec")
+  goodPostureCount   Int       @default(0) @map("good_posture_count")
+  turtleNeckCount    Int       @default(0) @map("turtle_neck_count")
+  shoulderIssueCount Int       @default(0) @map("shoulder_issue_count")
+  darkEnvCount       Int       @default(0) @map("dark_env_count")
+  healthScore        Int?      @map("health_score")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events DetectionEvent[]
+
+  @@index([userId, startedAt])
+  @@map("detection_sessions")
+}
+
+model DetectionEvent {
+  id          String        @id @default(uuid())
+  sessionId   String        @map("session_id")
+  userId      String        @map("user_id")
+  type        DetectionType
+  severity    Int
+  durationSec Int           @map("duration_sec")
+  detectedAt  DateTime      @map("detected_at")
+
+  session DetectionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, detectedAt])
+  @@index([userId, detectedAt])
+  @@map("detection_events")
+}
+
+model DailyStat {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  date               DateTime @db.Date
+  totalDetectionSec  Int      @default(0) @map("total_detection_sec")
+  goodPostureSec     Int      @default(0) @map("good_posture_sec")
+  turtleNeckSec      Int      @default(0) @map("turtle_neck_sec")
+  shoulderIssueSec   Int      @default(0) @map("shoulder_issue_sec")
+  darkEnvSec         Int      @default(0) @map("dark_env_sec")
+  goodPostureCount   Int      @default(0) @map("good_posture_count")
+  turtleNeckCount    Int      @default(0) @map("turtle_neck_count")
+  shoulderIssueCount Int      @default(0) @map("shoulder_issue_count")
+  darkEnvCount       Int      @default(0) @map("dark_env_count")
+  healthScore        Int?     @map("health_score")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_stats")
+}
+
+model Badge {
+  id               String        @id @default(uuid())
+  code             String        @unique
+  name             String
+  description      String
+  category         BadgeCategory
+  iconUrl          String?       @map("icon_url")
+  requirementValue Int           @map("requirement_value")
+
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  badgeId  String   @map("badge_id")
+  earnedAt DateTime @default(now()) @map("earned_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model WeeklyReport {
+  id            String         @id @default(uuid())
+  userId        String         @map("user_id")
+  weekStartDate DateTime       @map("week_start_date") @db.Date
+  weekEndDate   DateTime       @map("week_end_date") @db.Date
+  deliveryWay   DeliveryWay    @map("delivery_way")
+  status        ReportStatus   @default(PENDING)
+  sentAt        DateTime?      @map("sent_at")
+  errorMessage  String?        @map("error_message")
+  topIssueType  DetectionType? @map("top_issue_type")
+  aiSolution    String?        @map("ai_solution")
+  payload       Json
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStartDate, deliveryWay])
+  @@index([userId, weekStartDate])
+  @@index([status, createdAt])
+  @@map("weekly_reports")
 }
