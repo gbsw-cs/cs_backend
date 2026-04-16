@@ -5,6 +5,7 @@ import { RedisModule } from './common/redis/redis.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UserModule } from './user/user.module.js';
 import { SessionModule } from './session/session.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 import { AppController } from './app.controller.js';
 
 @Module({
@@ -16,6 +17,7 @@ import { AppController } from './app.controller.js';
     AuthModule,
     UserModule,
     SessionModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
