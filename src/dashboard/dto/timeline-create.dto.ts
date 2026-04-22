@@ -30,8 +30,7 @@ export class CreateTimelineEntryDto {
     example: 'GOOD',
   })
   @IsEnum(TIMELINE_STATES, {
-    message:
-      'dominantState는 GOOD, WARN, BAD 중 하나이어야 합니다.',
+    message: 'dominantState는 GOOD, WARN, BAD 중 하나이어야 합니다.',
   })
   dominantState!: TimelineDominantState;
 
