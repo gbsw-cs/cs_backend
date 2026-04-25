@@ -8,7 +8,7 @@ import { DetectionType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
   DailyDashboardDto,
-  DailyHourDto,
+  DailySlotDto,
 } from './dto/daily-response.dto.js';
 import {
   CreateTimelineEntryDto,
@@ -158,64 +158,42 @@ export class DashboardService {
 
       const events = await this.fetchSeoulDayEvents(userId, date);
 
-      type Bucket = {
-        good: number;
-        turtleNeck: number;
-        shoulder: number;
-        dark: number;
-        turtleNeckC: number;
-        shoulderC: number;
-        darkC: number;
-      };
-      const hours: Bucket[] = Array.from({ length: 24 }, () => ({
-        good: 0,
-        turtleNeck: 0,
-        shoulder: 0,
-        dark: 0,
-        turtleNeckC: 0,
-        shoulderC: 0,
-        darkC: 0,
-      }));
+      type SlotEvent = { startMs: number; endMs: number; type: DetectionType };
+      const slots: SlotEvent[][] = Array.from({ length: 8 }, () => []);
 
       for (const e of events) {
-        const b = hours[this.seoulHour(e.detectedAt)];
-        switch (e.type) {
-          case DetectionType.GOOD_POSTURE:
-            b.good += e.durationSec;
-            break;
-          case DetectionType.TURTLE_NECK:
-            b.turtleNeck += e.durationSec;
-            b.turtleNeckC += 1;
-            break;
-          case DetectionType.ROUND_SHOULDER:
-          case DetectionType.SHOULDER_ASYMMETRY:
-            b.shoulder += e.durationSec;
-            b.shoulderC += 1;
-            break;
-          case DetectionType.DARK_ENV:
-            b.dark += e.durationSec;
-            b.darkC += 1;
-            break;
-        }
+        const slotIndex = Math.floor(this.seoulHour(e.detectedAt) / 3);
+        const startMs = e.detectedAt.getTime();
+        slots[slotIndex].push({ startMs, endMs: startMs + e.durationSec * 1000, type: e.type });
       }
 
-      const result: DailyHourDto[] = hours.map((b, h) => {
-        const total = b.good + b.turtleNeck + b.shoulder + b.dark;
-        const ratio = (n: number) =>
-          total > 0 ? Math.round((n / total) * 100) / 100 : 0;
+      const overlaps = (a: SlotEvent, b: SlotEvent) =>
+        a.type !== b.type && a.startMs < b.endMs && b.startMs < a.endMs;
+
+      const result: DailySlotDto[] = slots.map((bucket, i) => {
+        const goodEvents = bucket.filter((e) => e.type === DetectionType.GOOD_POSTURE);
+        const badEvents = bucket.filter((e) => e.type !== DetectionType.GOOD_POSTURE);
+
+        let singleBadCount = 0;
+        let overlappingCount = 0;
+        for (const e of badEvents) {
+          if (badEvents.some((other) => other !== e && overlaps(e, other))) {
+            overlappingCount++;
+          } else {
+            singleBadCount++;
+          }
+        }
+
         return {
-          hour: h,
-          goodRatio: ratio(b.good),
-          turtleNeckRatio: ratio(b.turtleNeck),
-          shoulderIssueRatio: ratio(b.shoulder),
-          darkEnvRatio: ratio(b.dark),
-          turtleNeckCount: b.turtleNeckC,
-          shoulderIssueCount: b.shoulderC,
-          darkEnvCount: b.darkC,
+          slotIndex: i,
+          startHour: i * 3,
+          goodPostureCount: goodEvents.length,
+          singleBadCount,
+          overlappingCount,
         };
       });
 
-      return { date: dateStr, hours: result };
+      return { date: dateStr, slots: result };
     } catch (e) {
       if (e instanceof HttpException) throw e;
       throw new InternalServerErrorException(

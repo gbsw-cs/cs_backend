@@ -100,8 +100,10 @@ export class SessionService {
       );
 
       const seoulDate = this.toSeoulDate(endedAt);
-      const shoulderIssueSec = buckets.roundShoulderSec + buckets.shoulderAsymmetrySec;
-      const shoulderIssueCount = buckets.roundShoulderCount + buckets.shoulderAsymmetryCount;
+      const shoulderIssueSec =
+        buckets.roundShoulderSec + buckets.shoulderAsymmetrySec;
+      const shoulderIssueCount =
+        buckets.roundShoulderCount + buckets.shoulderAsymmetryCount;
 
       await this.prisma.$transaction([
         this.prisma.detectionSession.update({
@@ -148,7 +150,9 @@ export class SessionService {
             goodPostureCount: { increment: buckets.goodPostureCount },
             turtleNeckCount: { increment: buckets.turtleNeckCount },
             roundShoulderCount: { increment: buckets.roundShoulderCount },
-            shoulderAsymmetryCount: { increment: buckets.shoulderAsymmetryCount },
+            shoulderAsymmetryCount: {
+              increment: buckets.shoulderAsymmetryCount,
+            },
             darkEnvCount: { increment: buckets.darkEnvCount },
           },
         }),
@@ -196,17 +200,21 @@ export class SessionService {
         throw new ForbiddenException('해당 세션에 접근할 수 없습니다.');
       }
       if (session.endedAt) {
-        throw new ConflictException('종료된 세션에는 이벤트를 추가할 수 없습니다.');
+        throw new ConflictException(
+          '종료된 세션에는 이벤트를 추가할 수 없습니다.',
+        );
       }
 
-      const data: Prisma.DetectionEventCreateManyInput[] = dto.events.map((e) => ({
-        sessionId,
-        userId,
-        type: e.type,
-        severity: e.severity,
-        durationSec: e.durationSec,
-        detectedAt: new Date(e.detectedAt),
-      }));
+      const data: Prisma.DetectionEventCreateManyInput[] = dto.events.map(
+        (e) => ({
+          sessionId,
+          userId,
+          type: e.type,
+          severity: e.severity,
+          durationSec: e.durationSec,
+          detectedAt: new Date(e.detectedAt),
+        }),
+      );
 
       const result = await this.prisma.detectionEvent.createMany({ data });
 
@@ -235,7 +243,9 @@ export class SessionService {
     }
   }
 
-  private async aggregateBySession(sessionId: string): Promise<AggregateBuckets> {
+  private async aggregateBySession(
+    sessionId: string,
+  ): Promise<AggregateBuckets> {
     const grouped = await this.prisma.detectionEvent.groupBy({
       by: ['type'],
       where: { sessionId },
@@ -291,35 +301,43 @@ export class SessionService {
     totalDurationSec: number,
   ): number | null {
     if (totalDurationSec <= 0) return null;
-    return Math.max(0, Math.min(100, Math.round((goodPostureSec / totalDurationSec) * 100)));
+    return Math.max(
+      0,
+      Math.min(100, Math.round((goodPostureSec / totalDurationSec) * 100)),
+    );
   }
 
-  private computePostureScore(
-    stat: {
-      turtleNeckSec: number;
-      roundShoulderSec: number;
-      shoulderAsymmetrySec: number;
-      darkEnvSec: number;
-      totalDetectionSec: number;
-    },
-  ): number | null {
+  private computePostureScore(stat: {
+    turtleNeckSec: number;
+    roundShoulderSec: number;
+    shoulderAsymmetrySec: number;
+    darkEnvSec: number;
+    totalDetectionSec: number;
+  }): number | null {
     if (stat.totalDetectionSec <= 0) return null;
     const t = stat.totalDetectionSec;
-    const score = 100
-      - (stat.turtleNeckSec / t) * 30
-      - (stat.roundShoulderSec / t) * 30
-      - (stat.shoulderAsymmetrySec / t) * 30
-      - (stat.darkEnvSec / t) * 10;
+    const score =
+      100 -
+      (stat.turtleNeckSec / t) * 30 -
+      (stat.roundShoulderSec / t) * 30 -
+      (stat.shoulderAsymmetrySec / t) * 30 -
+      (stat.darkEnvSec / t) * 10;
     return Math.max(0, Math.round(score));
   }
 
-  private async recomputeDailyScores(userId: string, date: Date): Promise<void> {
+  private async recomputeDailyScores(
+    userId: string,
+    date: Date,
+  ): Promise<void> {
     const stat = await this.prisma.dailyStat.findUnique({
       where: { userId_date: { userId, date } },
     });
     if (!stat) return;
 
-    const healthScore = this.computeHealthScore(stat.goodPostureSec, stat.totalDetectionSec);
+    const healthScore = this.computeHealthScore(
+      stat.goodPostureSec,
+      stat.totalDetectionSec,
+    );
     const postureScore = this.computePostureScore(stat);
     const warningCount =
       stat.turtleNeckCount +
@@ -336,12 +354,7 @@ export class SessionService {
   private toSeoulDate(date: Date): Date {
     const seoul = new Date(date.getTime() + 9 * 60 * 60 * 1000);
     return new Date(
-      Date.UTC(
-        seoul.getUTCFullYear(),
-        seoul.getUTCMonth(),
-        seoul.getUTCDate(),
-      ),
+      Date.UTC(seoul.getUTCFullYear(), seoul.getUTCMonth(), seoul.getUTCDate()),
     );
   }
-
 }

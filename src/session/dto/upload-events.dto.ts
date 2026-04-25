@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 
 export class DetectionEventDto {
-  @ApiProperty({ description: '감지 유형', enum: DetectionType })
+  @ApiProperty({ description: '감지 유형' })
   @IsEnum(DetectionType, {
     message: 'type은 허용된 enum 값이어야 합니다.',
   })

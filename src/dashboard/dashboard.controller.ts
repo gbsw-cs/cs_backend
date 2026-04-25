@@ -62,7 +62,8 @@ export class DashboardController {
   @ApiOperation({
     summary: '일간 스크린타임 (FR-04-03)',
     description:
-      '특정 일자의 시간대별(0~23시) 자세 상태 비율과 횟수를 반환합니다.',
+      '특정 일자의 3시간 단위(8개 슬롯) 감지 횟수를 반환합니다.\n\n' +
+      '각 슬롯에는 ① GOOD_POSTURE 감지 횟수, ② 단일 불량 타입 감지 횟수, ③ 중첩 감지 횟수가 포함됩니다.',
   })
   @ApiCommonResponse({ type: DailyDashboardDto })
   async getDaily(
