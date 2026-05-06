@@ -1,0 +1,59 @@
+name: SonarCloud Analysis & Auto Merge
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  sonarcloud-analysis:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-merge-to-main:
+    name: Auto Merge to Main
+    needs: sonarcloud-analysis
+    runs-on: ubuntu-latest
+    if: needs.sonarcloud-analysis.result == 'success'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge dev into main
+        run: |
+          git fetch origin
+          git checkout main
+          git merge origin/dev --no-ff -m "auto-merge: dev → main | Quality Gate passed [$(date +'%Y-%m-%d %H:%M:%S')]"
+          git push origin main
+
+      - name: Notify success
+        run: echo "✅ Quality Gate 통과 → main 자동 머지 완료 → 배포 시작"
