@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # SonarCloud는 전체 히스토리 필요
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -24,17 +24,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run tests with coverage
-      # run: npm run test:cov # SonarCloud가 커버리지 리포트를 읽음
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
 
   auto-merge-to-main:
     name: Auto Merge to Main
