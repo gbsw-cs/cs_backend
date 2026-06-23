@@ -75,6 +75,7 @@ export class DashboardService {
           roundShoulderSec: true,
           shoulderAsymmetrySec: true,
           darkEnvSec: true,
+          slouchSec: true,
           unclassifiedSec: true,
         },
       });
@@ -93,6 +94,7 @@ export class DashboardService {
           roundShoulderSec: row?.roundShoulderSec ?? 0,
           shoulderAsymmetrySec: row?.shoulderAsymmetrySec ?? 0,
           darkEnvSec: row?.darkEnvSec ?? 0,
+          slouchSec: row?.slouchSec ?? 0,
           unclassifiedSec: row?.unclassifiedSec ?? 0,
         };
       });
@@ -133,9 +135,10 @@ export class DashboardService {
         const roundShoulderSec = s?.roundShoulderSec ?? 0;
         const shoulderAsymmetrySec = s?.shoulderAsymmetrySec ?? 0;
         const darkEnvSec = s?.darkEnvSec ?? 0;
+        const slouchSec = s?.slouchSec ?? 0;
         const unclassifiedSec = s?.unclassifiedSec ?? 0;
 
-        const badPostureSec = turtleNeckSec + roundShoulderSec + shoulderAsymmetrySec;
+        const badPostureSec = turtleNeckSec + roundShoulderSec + shoulderAsymmetrySec + slouchSec;
         const goodPostureRatio = totalSec > 0 ? Math.round((goodSec / totalSec) * 10000) / 10000 : 0;
         const badPostureRatio = totalSec > 0 ? Math.round((badPostureSec / totalSec) * 10000) / 10000 : 0;
 
@@ -150,6 +153,7 @@ export class DashboardService {
           roundShoulderSec,
           shoulderAsymmetrySec,
           darkEnvSec,
+          slouchSec,
           unclassifiedSec,
           goodPostureRatio,
           badPostureRatio,

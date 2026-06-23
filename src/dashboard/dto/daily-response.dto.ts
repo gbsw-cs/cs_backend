@@ -28,6 +28,9 @@ export class DailySlotDto {
   @ApiProperty({ description: '어둠 환경 시간(초)' })
   darkEnvSec!: number;
 
+  @ApiProperty({ description: '구부정한 자세 시간(초)' })
+  slouchSec!: number;
+
   @ApiProperty({ description: '미분류 시간(초)' })
   unclassifiedSec!: number;
 }

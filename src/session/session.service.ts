@@ -39,7 +39,7 @@ const POSTURE_SCORE_WEIGHTS = {
   roundShoulder: 30,
   shoulderAsymmetry: 30,
   darkEnv: 10,
-  slouching: 30,
+  slouch: 30,
 } as const;
 
 const GAP_THRESHOLD_SEC = 300;
@@ -56,8 +56,8 @@ interface AggregateBuckets {
   shoulderAsymmetryCount: number;
   darkEnvSec: number;
   darkEnvCount: number;
-  slouchingSec: number;
-  slouchingCount: number;
+  slouchSec: number;
+  slouchCount: number;
 }
 
 interface PreparedSegment {
@@ -250,7 +250,7 @@ export class SessionService {
     const roundShoulderCount = countByState(DetectionType.ROUND_SHOULDER);
     const shoulderAsymmetryCount = countByState(DetectionType.SHOULDER_ASYMMETRY);
     const darkEnvCount = countByState(DetectionType.DARK_ENV);
-    const slouchingCount = countByState(DetectionType.SLOUCHING);
+    const slouchCount = countByState(DetectionType.SLOUCH);
 
     await this.prisma.detectionSession.update({
       where: { id: sessionId },
@@ -327,11 +327,13 @@ export class SessionService {
           roundShoulderSec: buckets.roundShoulderSec,
           shoulderAsymmetrySec: buckets.shoulderAsymmetrySec,
           darkEnvSec: buckets.darkEnvSec,
+          slouchSec: buckets.slouchSec,
           goodPostureCount: buckets.goodPostureCount,
           turtleNeckCount: buckets.turtleNeckCount,
           roundShoulderCount: buckets.roundShoulderCount,
           shoulderAsymmetryCount: buckets.shoulderAsymmetryCount,
           darkEnvCount: buckets.darkEnvCount,
+          slouchCount: buckets.slouchCount,
           healthScore,
         },
         update: {
@@ -341,11 +343,13 @@ export class SessionService {
           roundShoulderSec: { increment: buckets.roundShoulderSec },
           shoulderAsymmetrySec: { increment: buckets.shoulderAsymmetrySec },
           darkEnvSec: { increment: buckets.darkEnvSec },
+          slouchSec: { increment: buckets.slouchSec },
           goodPostureCount: { increment: buckets.goodPostureCount },
           turtleNeckCount: { increment: buckets.turtleNeckCount },
           roundShoulderCount: { increment: buckets.roundShoulderCount },
           shoulderAsymmetryCount: { increment: buckets.shoulderAsymmetryCount },
           darkEnvCount: { increment: buckets.darkEnvCount },
+          slouchCount: { increment: buckets.slouchCount },
         },
       }),
     ]);
@@ -358,10 +362,12 @@ export class SessionService {
       turtleNeckSec: buckets.turtleNeckSec,
       shoulderIssueSec,
       darkEnvSec: buckets.darkEnvSec,
+      slouchSec: buckets.slouchSec,
       goodPostureCount: buckets.goodPostureCount,
       turtleNeckCount: buckets.turtleNeckCount,
       shoulderIssueCount,
       darkEnvCount: buckets.darkEnvCount,
+      slouchCount: buckets.slouchCount,
       healthScore,
     });
   }
@@ -679,7 +685,7 @@ export class SessionService {
       roundShoulderSec: 0,
       shoulderAsymmetrySec: 0,
       darkEnvSec: 0,
-      slouchingSec: 0,
+      slouchSec: 0,
       unclassifiedSec: 0,
     };
     const slots = Array.from({ length: 8 }, () => ({ ...totals }));
@@ -706,8 +712,8 @@ export class SessionService {
           totals.shoulderAsymmetrySec += seg.durationSec; slot.shoulderAsymmetrySec += seg.durationSec; break;
         case DetectionType.DARK_ENV:
           totals.darkEnvSec += seg.durationSec; slot.darkEnvSec += seg.durationSec; break;
-        case DetectionType.SLOUCHING:
-          totals.slouchingSec += seg.durationSec; slot.slouchingSec += seg.durationSec; break;
+        case DetectionType.SLOUCH:
+          totals.slouchSec += seg.durationSec; slot.slouchSec += seg.durationSec; break;
         case DetectionType.UNCLASSIFIED:
           totals.unclassifiedSec += seg.durationSec; slot.unclassifiedSec += seg.durationSec; break;
       }
@@ -717,8 +723,8 @@ export class SessionService {
     const roundShoulderCount = countByState[DetectionType.ROUND_SHOULDER] ?? 0;
     const shoulderAsymmetryCount = countByState[DetectionType.SHOULDER_ASYMMETRY] ?? 0;
     const darkEnvCount = countByState[DetectionType.DARK_ENV] ?? 0;
-    const slouchingCount = countByState[DetectionType.SLOUCHING] ?? 0;
-    const warningCount = turtleNeckCount + roundShoulderCount + shoulderAsymmetryCount + darkEnvCount + slouchingCount;
+    const slouchCount = countByState[DetectionType.SLOUCH] ?? 0;
+    const warningCount = turtleNeckCount + roundShoulderCount + shoulderAsymmetryCount + darkEnvCount + slouchCount;
     const healthScore = this.computeHealthScore(totals.goodPostureSec, totals.totalDetectionSec);
     const postureScore = this.computePostureScore({ ...totals });
 
@@ -728,13 +734,13 @@ export class SessionService {
         create: {
           userId, date, ...totals,
           goodPostureCount: countByState[DetectionType.GOOD_POSTURE] ?? 0,
-          turtleNeckCount, roundShoulderCount, shoulderAsymmetryCount, darkEnvCount, slouchingCount,
+          turtleNeckCount, roundShoulderCount, shoulderAsymmetryCount, darkEnvCount, slouchCount,
           warningCount, healthScore, postureScore,
         },
         update: {
           ...totals,
           goodPostureCount: countByState[DetectionType.GOOD_POSTURE] ?? 0,
-          turtleNeckCount, roundShoulderCount, shoulderAsymmetryCount, darkEnvCount, slouchingCount,
+          turtleNeckCount, roundShoulderCount, shoulderAsymmetryCount, darkEnvCount, slouchCount,
           warningCount, healthScore, postureScore,
         },
       }),
@@ -769,7 +775,7 @@ export class SessionService {
       roundShoulderSec: 0, roundShoulderCount: 0,
       shoulderAsymmetrySec: 0, shoulderAsymmetryCount: 0,
       darkEnvSec: 0, darkEnvCount: 0,
-      slouchingSec: 0, slouchingCount: 0,
+      slouchSec: 0, slouchCount: 0,
     };
 
     for (const row of grouped) {
@@ -781,7 +787,7 @@ export class SessionService {
         case DetectionType.ROUND_SHOULDER: buckets.roundShoulderSec += sec; buckets.roundShoulderCount += count; break;
         case DetectionType.SHOULDER_ASYMMETRY: buckets.shoulderAsymmetrySec += sec; buckets.shoulderAsymmetryCount += count; break;
         case DetectionType.DARK_ENV: buckets.darkEnvSec += sec; buckets.darkEnvCount += count; break;
-        case DetectionType.SLOUCHING: buckets.slouchingSec += sec; buckets.slouchingCount += count; break;
+        case DetectionType.SLOUCH: buckets.slouchSec += sec; buckets.slouchCount += count; break;
       }
     }
     return buckets;
@@ -789,9 +795,9 @@ export class SessionService {
 
   private aggregateSegmentSecs(segments: { state: DetectionType; durationSec: number }[]): {
     goodPostureSec: number; turtleNeckSec: number; roundShoulderSec: number;
-    shoulderAsymmetrySec: number; darkEnvSec: number; slouchingSec: number; unclassifiedSec: number;
+    shoulderAsymmetrySec: number; darkEnvSec: number; slouchSec: number; unclassifiedSec: number;
   } {
-    const b = { goodPostureSec: 0, turtleNeckSec: 0, roundShoulderSec: 0, shoulderAsymmetrySec: 0, darkEnvSec: 0, slouchingSec: 0, unclassifiedSec: 0 };
+    const b = { goodPostureSec: 0, turtleNeckSec: 0, roundShoulderSec: 0, shoulderAsymmetrySec: 0, darkEnvSec: 0, slouchSec: 0, unclassifiedSec: 0 };
     for (const seg of segments) {
       switch (seg.state) {
         case DetectionType.GOOD_POSTURE: b.goodPostureSec += seg.durationSec; break;
@@ -799,7 +805,7 @@ export class SessionService {
         case DetectionType.ROUND_SHOULDER: b.roundShoulderSec += seg.durationSec; break;
         case DetectionType.SHOULDER_ASYMMETRY: b.shoulderAsymmetrySec += seg.durationSec; break;
         case DetectionType.DARK_ENV: b.darkEnvSec += seg.durationSec; break;
-        case DetectionType.SLOUCHING: b.slouchingSec += seg.durationSec; break;
+        case DetectionType.SLOUCH: b.slouchSec += seg.durationSec; break;
         case DetectionType.UNCLASSIFIED: b.unclassifiedSec += seg.durationSec; break;
       }
     }
@@ -813,7 +819,7 @@ export class SessionService {
 
   private computePostureScore(stat: {
     turtleNeckSec: number; roundShoulderSec: number;
-    shoulderAsymmetrySec: number; darkEnvSec: number; slouchingSec: number; totalDetectionSec: number;
+    shoulderAsymmetrySec: number; darkEnvSec: number; slouchSec: number; totalDetectionSec: number;
   }): number | null {
     if (stat.totalDetectionSec <= 0) return null;
     const total = stat.totalDetectionSec;
@@ -823,7 +829,7 @@ export class SessionService {
       (stat.roundShoulderSec / total) * POSTURE_SCORE_WEIGHTS.roundShoulder -
       (stat.shoulderAsymmetrySec / total) * POSTURE_SCORE_WEIGHTS.shoulderAsymmetry -
       (stat.darkEnvSec / total) * POSTURE_SCORE_WEIGHTS.darkEnv -
-      (stat.slouchingSec / total) * POSTURE_SCORE_WEIGHTS.slouching;
+      (stat.slouchSec / total) * POSTURE_SCORE_WEIGHTS.slouch;
     return Math.max(0, Math.round(score));
   }
 
@@ -833,7 +839,7 @@ export class SessionService {
     const healthScore = this.computeHealthScore(stat.goodPostureSec, stat.totalDetectionSec);
     const postureScore = this.computePostureScore(stat);
     const warningCount =
-      stat.turtleNeckCount + stat.roundShoulderCount + stat.shoulderAsymmetryCount + stat.darkEnvCount + stat.slouchingCount;
+      stat.turtleNeckCount + stat.roundShoulderCount + stat.shoulderAsymmetryCount + stat.darkEnvCount + stat.slouchCount;
     await this.prisma.dailyStat.update({
       where: { userId_date: { userId, date } },
       data: { healthScore, postureScore, warningCount },
