@@ -11,6 +11,7 @@ export class WeeklyDailyStatDto {
   @ApiProperty() turtleNeckSec!: number;
   @ApiProperty() roundShoulderSec!: number;
   @ApiProperty() shoulderAsymmetrySec!: number;
+  @ApiProperty() slouchingSec!: number;
   @ApiProperty() darkEnvSec!: number;
   @ApiProperty() slouchSec!: number;
   @ApiProperty() unclassifiedSec!: number;

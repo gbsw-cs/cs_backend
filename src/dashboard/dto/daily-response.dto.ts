@@ -25,6 +25,9 @@ export class DailySlotDto {
   @ApiProperty({ description: '어깨 비대칭 시간(초)' })
   shoulderAsymmetrySec!: number;
 
+  @ApiProperty({ description: '구부정한 자세 시간(초)' })
+  slouchingSec!: number;
+
   @ApiProperty({ description: '어둠 환경 시간(초)' })
   darkEnvSec!: number;
 
