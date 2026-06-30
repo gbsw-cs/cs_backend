@@ -16,6 +16,7 @@ import { ReportHistoryQueryDto } from './dto/report-query.dto.js';
 import {
   ReportDetailResponseDto,
   ReportHistoryResponseDto,
+  ReportSummaryResponseDto,
 } from './dto/report-response.dto.js';
 import { ReportService } from './report.service.js';
 
@@ -23,6 +24,20 @@ import { ReportService } from './report.service.js';
 @Controller('users/me/reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
+
+  @Get('summary')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: '리포트 요약 목록 조회',
+    description: 'internal/save로 저장된 리포트를 요약 형태로 반환합니다.',
+  })
+  @ApiCommonResponse({ type: ReportSummaryResponseDto })
+  async getReportSummary(
+    @CurrentUser() user: CurrentUserPayload,
+  ): Promise<ReportSummaryResponseDto> {
+    return this.reportService.getReportSummary(user.id);
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)

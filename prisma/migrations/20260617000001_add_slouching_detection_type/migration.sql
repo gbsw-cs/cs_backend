@@ -1,2 +1,2 @@
--- Add SLOUCHING to DetectionType enum
-ALTER TYPE "DetectionType" ADD VALUE 'SLOUCHING';
+-- Add SLOUCH to DetectionType enum
+ALTER TYPE "DetectionType" ADD VALUE 'SLOUCH';

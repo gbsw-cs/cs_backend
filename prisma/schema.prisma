@@ -30,7 +30,7 @@ enum DetectionType {
   DARK_ENV
   GOOD_POSTURE
   UNCLASSIFIED
-  SLOUCHING
+  SLOUCH
 }
 
 enum BadgeCategory {
@@ -195,14 +195,14 @@ model DailyStat {
   roundShoulderSec       Int      @default(0) @map("round_shoulder_sec")
   shoulderAsymmetrySec   Int      @default(0) @map("shoulder_asymmetry_sec")
   darkEnvSec             Int      @default(0) @map("dark_env_sec")
-  slouchingSec           Int      @default(0) @map("slouching_sec")
+  slouchSec           Int      @default(0) @map("slouch_sec")
   unclassifiedSec        Int      @default(0) @map("unclassified_sec")
   goodPostureCount       Int      @default(0) @map("good_posture_count")
   turtleNeckCount        Int      @default(0) @map("turtle_neck_count")
   roundShoulderCount     Int      @default(0) @map("round_shoulder_count")
   shoulderAsymmetryCount Int      @default(0) @map("shoulder_asymmetry_count")
   darkEnvCount           Int      @default(0) @map("dark_env_count")
-  slouchingCount         Int      @default(0) @map("slouching_count")
+  slouchCount         Int      @default(0) @map("slouch_count")
   healthScore            Int?     @map("health_score")
   postureScore           Int?     @map("posture_score")
   warningCount           Int      @default(0) @map("warning_count")
@@ -278,7 +278,7 @@ model DailySlotStat {
   roundShoulderSec       Int      @default(0) @map("round_shoulder_sec")
   shoulderAsymmetrySec   Int      @default(0) @map("shoulder_asymmetry_sec")
   darkEnvSec             Int      @default(0) @map("dark_env_sec")
-  slouchingSec           Int      @default(0) @map("slouching_sec")
+  slouchSec           Int      @default(0) @map("slouch_sec")
   unclassifiedSec        Int      @default(0) @map("unclassified_sec")
   updatedAt              DateTime @updatedAt @map("updated_at")
 

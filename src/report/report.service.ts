@@ -12,6 +12,8 @@ import {
   ReportHistoryItemDto,
   ReportHistoryResponseDto,
   ReportSessionDto,
+  ReportSummaryItemDto,
+  ReportSummaryResponseDto,
   ReportTimelineItemDto,
   TopIssueDto,
 } from './dto/report-response.dto.js';
@@ -108,6 +110,80 @@ export class ReportService {
       };
     } catch (e) {
       rethrowAsInternal(e, '서버 오류: 리포트를 조회할 수 없습니다.');
+    }
+  }
+
+  async getReportSummary(userId: string): Promise<ReportSummaryResponseDto> {
+    try {
+      const reports = await this.prisma.weeklyReport.findMany({
+        where: { userId },
+        orderBy: { weekStartDate: 'desc' },
+        select: {
+          id: true,
+          weekStartDate: true,
+          weekEndDate: true,
+          deliveryWay: true,
+          status: true,
+          sentAt: true,
+          aiSolution: true,
+          createdAt: true,
+          payload: true,
+        },
+      });
+
+      const items: ReportSummaryItemDto[] = await Promise.all(
+        reports.map(async (r) => {
+          const payload = r.payload as unknown as {
+            healthScore?: { weekly?: number | null };
+            topIssues?: TopIssueDto[];
+          };
+
+          const dailyStats = await this.prisma.dailyStat.findMany({
+            where: { userId, date: { gte: r.weekStartDate, lte: r.weekEndDate } },
+            select: {
+              totalDetectionSec: true,
+              goodPostureSec: true,
+              turtleNeckSec: true,
+              roundShoulderSec: true,
+              shoulderAsymmetrySec: true,
+              slouchingSec: true,
+            },
+          });
+
+          const totalDetectionSec = dailyStats.reduce((s, d) => s + d.totalDetectionSec, 0);
+          const goodPostureSec = dailyStats.reduce((s, d) => s + d.goodPostureSec, 0);
+          const badPostureSec = dailyStats.reduce(
+            (s, d) => s + d.turtleNeckSec + d.roundShoulderSec + d.shoulderAsymmetrySec + d.slouchingSec,
+            0,
+          );
+          const goodPostureRatio = totalDetectionSec > 0
+            ? Math.round((goodPostureSec / totalDetectionSec) * 10000) / 10000
+            : 0;
+          const riskPercent = totalDetectionSec > 0
+            ? Math.round((badPostureSec / totalDetectionSec) * 1000) / 10
+            : 0;
+
+          return {
+            reportId: r.id,
+            status: r.status,
+            sentAt: r.sentAt,
+            deliveryWay: r.deliveryWay,
+            totalDetectionSec,
+            goodPostureSec,
+            badPostureSec,
+            riskPercent,
+            goodPostureRatio,
+            healthScore: payload.healthScore?.weekly ?? null,
+            topIssues: payload.topIssues ?? [],
+            aiSolution: r.aiSolution,
+            aiAnalyzedAt: r.createdAt,
+          };
+        }),
+      );
+
+      return { items };
+    } catch (e) {
+      rethrowAsInternal(e, '서버 오류: 리포트 요약을 조회할 수 없습니다.');
     }
   }
 

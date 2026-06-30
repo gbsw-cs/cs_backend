@@ -74,6 +74,7 @@ export class DashboardService {
           turtleNeckSec: true,
           roundShoulderSec: true,
           shoulderAsymmetrySec: true,
+          slouchingSec: true,
           darkEnvSec: true,
           unclassifiedSec: true,
         },
@@ -92,6 +93,7 @@ export class DashboardService {
           turtleNeckSec: row?.turtleNeckSec ?? 0,
           roundShoulderSec: row?.roundShoulderSec ?? 0,
           shoulderAsymmetrySec: row?.shoulderAsymmetrySec ?? 0,
+          slouchingSec: row?.slouchingSec ?? 0,
           darkEnvSec: row?.darkEnvSec ?? 0,
           unclassifiedSec: row?.unclassifiedSec ?? 0,
         };
@@ -132,10 +134,11 @@ export class DashboardService {
         const turtleNeckSec = s?.turtleNeckSec ?? 0;
         const roundShoulderSec = s?.roundShoulderSec ?? 0;
         const shoulderAsymmetrySec = s?.shoulderAsymmetrySec ?? 0;
+        const slouchingSec = s?.slouchingSec ?? 0;
         const darkEnvSec = s?.darkEnvSec ?? 0;
         const unclassifiedSec = s?.unclassifiedSec ?? 0;
 
-        const badPostureSec = turtleNeckSec + roundShoulderSec + shoulderAsymmetrySec;
+        const badPostureSec = turtleNeckSec + roundShoulderSec + shoulderAsymmetrySec + slouchingSec;
         const goodPostureRatio = totalSec > 0 ? Math.round((goodSec / totalSec) * 10000) / 10000 : 0;
         const badPostureRatio = totalSec > 0 ? Math.round((badPostureSec / totalSec) * 10000) / 10000 : 0;
 
@@ -149,6 +152,7 @@ export class DashboardService {
           turtleNeckSec,
           roundShoulderSec,
           shoulderAsymmetrySec,
+          slouchingSec,
           darkEnvSec,
           unclassifiedSec,
           goodPostureRatio,

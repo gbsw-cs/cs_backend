@@ -58,6 +58,9 @@ export class SessionEndResponseDto {
   @ApiProperty({ description: '어둠 환경 지속 시간(초)' })
   darkEnvSec!: number;
 
+  @ApiProperty({ description: '구부정한 자세 지속 시간(초)' })
+  slouchSec!: number;
+
   @ApiProperty({ description: '정자세 감지 횟수' })
   goodPostureCount!: number;
 
@@ -69,6 +72,9 @@ export class SessionEndResponseDto {
 
   @ApiProperty({ description: '어둠 환경 감지 횟수' })
   darkEnvCount!: number;
+
+  @ApiProperty({ description: '구부정한 자세 감지 횟수' })
+  slouchCount!: number;
 
   @ApiProperty({ description: '건강 점수 (0~100)', nullable: true })
   healthScore!: number | null;
