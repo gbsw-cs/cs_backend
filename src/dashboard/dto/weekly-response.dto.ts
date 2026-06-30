@@ -13,7 +13,6 @@ export class WeeklyDailyStatDto {
   @ApiProperty() shoulderAsymmetrySec!: number;
   @ApiProperty() slouchingSec!: number;
   @ApiProperty() darkEnvSec!: number;
-  @ApiProperty() slouchSec!: number;
   @ApiProperty() unclassifiedSec!: number;
   @ApiProperty({ type: Number, description: '정자세 비율 (0.0~1.0)' }) goodPostureRatio!: number;
   @ApiProperty({ type: Number, description: '불량 자세 비율 (0.0~1.0)' }) badPostureRatio!: number;
