@@ -42,7 +42,7 @@
 | `TURTLE_NECK` | 거북목 |
 | `ROUND_SHOULDER` | 라운드숄더 |
 | `SHOULDER_ASYMMETRY` | 어깨 비대칭 |
-| `SLOUCH` | 슬라우칭 |
+| `SLOUCHING` | 슬라우칭 |
 | `DARK_ENV` | 어두운 환경 |
 | `UNCLASSIFIED` | 미분류 |
 
@@ -163,7 +163,8 @@ http://localhost:3000/api
 | | `GET /users/me/badges/progress` | 배지 진행도 조회 |
 | | `POST /users/me/push-tokens` | FCM 푸시 토큰 등록 |
 | **Badge** | `GET /badges` | 전체 배지 목록 조회 |
-| **Report** | `GET /users/me/reports` | 주간 리포트 이력 |
+| **Report** | `GET /users/me/reports/summary` | 리포트 요약 목록 조회 |
+| | `GET /users/me/reports` | 주간 리포트 이력 |
 | | `GET /users/me/reports/:id` | 리포트 단건 조회 |
 
 ---
