@@ -116,6 +116,26 @@ export class ReportHistoryResponseDto {
   items!: ReportHistoryItemDto[];
 }
 
+export class ReportSummaryItemDto {
+  @ApiProperty({ description: '리포트 ID' }) reportId!: string;
+  @ApiProperty({ enum: ['PENDING', 'SENT', 'FAILED'] }) status!: string;
+  @ApiProperty({ nullable: true }) sentAt!: Date | null;
+  @ApiProperty({ enum: ['EMAIL', 'NOTION'] }) deliveryWay!: string;
+  @ApiProperty() totalDetectionSec!: number;
+  @ApiProperty() goodPostureSec!: number;
+  @ApiProperty() badPostureSec!: number;
+  @ApiProperty({ description: '불량 자세 비율 (0~100)' }) riskPercent!: number;
+  @ApiProperty({ description: '정자세 비율 (0.0~1.0)' }) goodPostureRatio!: number;
+  @ApiProperty({ nullable: true }) healthScore!: number | null;
+  @ApiProperty({ type: [TopIssueDto] }) topIssues!: TopIssueDto[];
+  @ApiProperty({ nullable: true }) aiSolution!: string | null;
+  @ApiProperty({ nullable: true }) aiAnalyzedAt!: Date | null;
+}
+
+export class ReportSummaryResponseDto {
+  @ApiProperty({ type: [ReportSummaryItemDto] }) items!: ReportSummaryItemDto[];
+}
+
 export class ReportDetailResponseDto extends CurrentReportResponseDto {
   @ApiProperty({ description: '리포트 ID' })
   id!: string;
